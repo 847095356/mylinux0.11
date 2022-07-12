@@ -60,6 +60,16 @@ static unsigned char mem_map [ PAGING_PAGES ] = {0,};
  * Get physical address of first (actually last :-) free page, and mark it
  * used. If no free pages left, return 0.
  */
+// 在主内存区中取空闲屋里页面。如果已经没有可用物理内存页面，则返回0.
+// 输入：%1(ax=0) - 0; %2(LOW_MEM)内存字节位图管理的其实位置；%3(cx=PAGING_PAGES);
+// %4(edi=mem_map+PAGING_PAGES-1).
+// 输出：返回%0(ax=物理内存页面起始地址)。
+// 上面%4寄存器实际指向mem_map[]内存字节位图的最后一个字节。本函数从位图末端开
+// 始向前扫描所有页面标志（页面总数PAGING_PAGE），若有页面空闲（内存位图字节为
+// 0）则返回页面地址。注意！本函数只是指出在主内存区的一页空闲物理内存页面，但
+// 并没有映射到某个进程的地址空间中去。后面的put_page()函数即用于把指定页面映射
+// 到某个进程地址空间中。当然对于内核使用本函数并不需要再使用put_page()进行映射，
+// 因为内核代码和数据空间（16MB）已经对等地映射到物理地址空间。
 unsigned long get_free_page(void)
 {
 register unsigned long __res asm("ax");
@@ -86,11 +96,22 @@ return __res;
  * Free a page of memory at physical address 'addr'. Used by
  * 'free_page_tables()'
  */
+//// 释放物理地址addr开始的1页面内存。
+// 物理地址1MB以下的内容空间用于内核程序和缓冲，不作为分配页面的内存空间。因此
+// 参数addr需要大于1MB.
 void free_page(unsigned long addr)
 {
+	// 首先判断参数给定的物理地址addr的合理性。如果物理地址addr小于内存低端(1MB)
+    // 则表示在内核程序或高速缓冲中，对此不予处理。如果物理地址addr>=系统所含物
+    // 理内存最高端，则显示出错信息并且内核停止工作。
 	if (addr < LOW_MEM) return;
 	if (addr >= HIGH_MEMORY)
 		panic("trying to free nonexistent page");
+	// 如果对参数addr验证通过，那么就根据这个物理地址换算出从内存低端开始记起的
+    // 内存页面号。页面号 ＝ (addr - LOW_MEM)/4096.可见页面号从0号开始记起。此时
+    // addr中存放着页面号。如果该页面号对应的页面映射字节不等于0，则减1返回。此
+    // 时该映射字节值应该为0，表示页面已释放。如果对应页面字节原本就是0，表示该
+    // 物理页面本来就是空闲的，说明内核代码出问题。于是显示出错信息并停机。
 	addr -= LOW_MEM;
 	addr >>= 12;
 	if (mem_map[addr]--) return;
@@ -102,6 +123,7 @@ void free_page(unsigned long addr)
  * This function frees a continuos block of page tables, as needed
  * by 'exit()'. As does copy_page_tables(), this handles only 4Mb blocks.
  */
+//找到页目录的基址，然后挨个遍历；遍历时找到页表项，进而找到使用的物理内存，挨个释放！　
 int free_page_tables(unsigned long from,unsigned long size)
 {
 	unsigned long *pg_table;

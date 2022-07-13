@@ -147,27 +147,27 @@ int free_page_tables(unsigned long from, unsigned long size)
 	if (!from)
 		panic("Trying to free up swapper memory space");
 	// 然后计算参数size给出的长度所占的页目录项数（4MB的进位整数倍），也即所占
-    // 页表数。因为1个页表可管理4MB物理内存，所以这里用右移22位的方式把需要复制
-    // 的内存长度值除以4MB.其中加上0x3fffff(即4MB-1)用于得到进位整数倍结果，即
-    // 除操作若有余数则进1。例如，如果原size=4.01Mb，那么可得到结果sieze=2。接
-    // 着结算给出的线性基地址对应的其实目录项。对应的目录项号＝from>>22.因为每
-    // 项占4字节，并且由于页目录表从物理地址0开始存放，因此实际目录项指针＝目录
-    // 项号<<2，也即(from>>20)。& 0xffc确保目录项指针范围有效，即用于屏蔽目录项
-    // 指针最后2位。因为只移动了20位，因此最后2位是页表项索引的内容，应屏蔽掉。
+	// 页表数。因为1个页表可管理4MB物理内存，所以这里用右移22位的方式把需要复制
+	// 的内存长度值除以4MB.其中加上0x3fffff(即4MB-1)用于得到进位整数倍结果，即
+	// 除操作若有余数则进1。例如，如果原size=4.01Mb，那么可得到结果sieze=2。接
+	// 着结算给出的线性基地址对应的其实目录项。对应的目录项号＝from>>22.因为每
+	// 项占4字节，并且由于页目录表从物理地址0开始存放，因此实际目录项指针＝目录
+	// 项号<<2，也即(from>>20)。& 0xffc确保目录项指针范围有效，即用于屏蔽目录项
+	// 指针最后2位。因为只移动了20位，因此最后2位是页表项索引的内容，应屏蔽掉。
 	size = (size + 0x3fffff) >> 22;
 	dir = (unsigned long *)((from >> 20) & 0xffc); /* _pg_dir = 0 */
 	// 此时size是释放的页表个数，即页目录项数，而dir是起始目录项指针。现在开始
-    // 循环操作页目录项，依次释放每个页表中的页表项。如果当前目录项无效（P位＝0）
-    // 表示该目录项没有使用(对应的页表不存在)，则继续处理下一个目录项。否则从目
-    // 录项总取出页表地址pg_table，并对该页表中的1024个表项进行处理。释放有效页
-    // 表项(P位＝1)对应的物理内存页表。然后该页表项清零，并继续处理下一页表项。
-    // 当一个页表所有表项都处理完毕就释放该页表自身占据的内存页面，并继续处理下
-    // 一页目录项。最后刷新也页变换高速缓冲，并返回0.
+	// 循环操作页目录项，依次释放每个页表中的页表项。如果当前目录项无效（P位＝0）
+	// 表示该目录项没有使用(对应的页表不存在)，则继续处理下一个目录项。否则从目
+	// 录项总取出页表地址pg_table，并对该页表中的1024个表项进行处理。释放有效页
+	// 表项(P位＝1)对应的物理内存页表。然后该页表项清零，并继续处理下一页表项。
+	// 当一个页表所有表项都处理完毕就释放该页表自身占据的内存页面，并继续处理下
+	// 一页目录项。最后刷新也页变换高速缓冲，并返回0.
 	for (; size-- > 0; dir++)
 	{
 		if (!(1 & *dir))
 			continue;
-		pg_table = (unsigned long *)(0xfffff000 & *dir);// 取页表地址
+		pg_table = (unsigned long *)(0xfffff000 & *dir); // 取页表地址
 		for (nr = 0; nr < 1024; nr++)
 		{
 			if (1 & *pg_table)
@@ -213,28 +213,55 @@ int copy_page_tables(unsigned long from, unsigned long to, long size)
 	unsigned long *from_dir, *to_dir;
 	unsigned long nr;
 
-	if ((from & 0x3fffff) || (to & 0x3fffff))
+	// 首先检测参数给出的原地址from和目的地址to的有效性。原地址和目的地址都需要
+	// 在4Mb内存边界地址上。否则出错死机。作这样的要求是因为一个页表的1024项可
+	// 管理4Mb内存。源地址from和目的地址to只有满足这个要求才能保证从一个页表的
+	// 第一项开始复制页表项，并且新页表的最初所有项都是有效的。然后取得源地址和
+	// 目的地址的起始目录项指针(from_dir 和 to_dir).再根据参数给出的长度size计
+	// 算要复制的内存块占用的页表数(即目录项数)。
+	if ((from & 0x3fffff) || (to & 0x3fffff)) //检测是否是从4MB边缘开始的
 		panic("copy_page_tables called with wrong alignment");
+	//from_dir 和 to_dir 都是二级目录的地址
 	from_dir = (unsigned long *)((from >> 20) & 0xffc); /* _pg_dir = 0 */
 	to_dir = (unsigned long *)((to >> 20) & 0xffc);
+	//二级目录的索引个数
 	size = ((unsigned)(size + 0x3fffff)) >> 22;
+	// 在得到了源起始目录项指针from_dir和目的起始目录项指针to_dir以及需要复制的
+    // 页表个数size后，下面开始对每个页目录项依次申请1页内存来保存对应的页表，并
+    // 且开始页表项复制操作。如果目的目录指定的页表已经存在(P=1)，则出错死机。
+    // 如果源目录项无效，即指定的页表不存在(P=1),则继续循环处理下一个页目录项。	
 	for (; size-- > 0; from_dir++, to_dir++)
 	{
-		if (1 & *to_dir)
+		if (1 & *to_dir)	//
 			panic("copy_page_tables: already exist");
-		if (!(1 & *from_dir))
+		if (!(1 & *from_dir))		//本身不存在跳过
 			continue;
+		// 在验证了当前源目录项和目的项正常之后，我们取源目录项中页表地址
+        // from_page_table。为了保存目的目录项对应的页表，需要在住内存区中申请1
+        // 页空闲内存页。如果取空闲页面函数get_free_page()返回0，则说明没有申请
+        // 到空闲内存页面，可能是内存不够。于是返回-1值退出。
 		from_page_table = (unsigned long *)(0xfffff000 & *from_dir);
 		if (!(to_page_table = (unsigned long *)get_free_page()))
 			return -1; /* Out of memory, see freeing */
+		// 否则我们设置目的目录项信息，把最后3位置位，即当前目录的目录项 | 7，
+        // 表示对应页表映射的内存页面是用户级的，并且可读写、存在(Usr,R/W,Present).
+        // (如果U/S位是0，则R/W就没有作用。如果U/S位是1，而R/W是0，那么运行在用
+        // 户层的代码就只能读页面。如果U/S和R/W都置位，则就有读写的权限)。然后
+        // 针对当前处理的页目录项对应的页表，设置需要复制的页面项数。如果是在内
+        // 核空间，则仅需复制头160页对应的页表项(nr=160),对应于开始640KB物理内存
+        // 否则需要复制一个页表中的所有1024个页表项(nr=1024)，可映射4MB物理内存。
 		*to_dir = ((unsigned long)to_page_table) | 7;
 		nr = (from == 0) ? 0xA0 : 1024;
+		// 此时对于当前页表，开始循环复制指定的nr个内存页面表项。先取出源页表的
+        // 内容，如果当前源页表没有使用，则不用复制该表项，继续处理下一项。否则
+        // 复位表项中R/W标志(位1置0)，即让页表对应的内存页面只读。然后将页表项复制
+        // 到目录页表中。
 		for (; nr-- > 0; from_page_table++, to_page_table++)
 		{
 			this_page = *from_page_table;
 			if (!(1 & this_page))
 				continue;
-			this_page &= ~2;
+			this_page &= ~2;	//将R/W位置0，让对应内存页只读
 			*to_page_table = this_page;
 			if (this_page > LOW_MEM)
 			{
@@ -255,16 +282,34 @@ int copy_page_tables(unsigned long from, unsigned long to, long size)
  * out of memory (either when trying to access page-table or
  * page.)
  */
+//// 把一物理内存页面映射到线性地址空间指定处。
+// 或者说是把线性地址空间中指定地址address出的页面映射到主内存区页面page上。主
+// 要工作是在相关页面目录项和页表项中设置指定页面的信息。若成功则返回物理页面地
+// 址。在处理缺页异常的C函数do_no_page()中会调用此函数。对于缺页引起的异常，由于
+// 任何缺页缘故而对页表作修改时，并不需要刷新CPU的页变换缓冲(或称Translation Lookaside
+// Buffer - TLB),即使页表中标志P被从0修改成1.因为无效叶项不会被缓冲，因此当修改
+// 了一个无效的页表项时不需要刷新。在次就表现为不用调用Invalidate()函数。
+// 参数page是分配的主内存区中某一页面(页帧，页框)的指针;address是线性地址。
 unsigned long put_page(unsigned long page, unsigned long address)
 {
 	unsigned long tmp, *page_table;
 
 	/* NOTE !!! This uses the fact that _pg_dir=0 */
 
+    // 首先判断参数给定物理内存页面page的有效性。如果该页面位置低于LOW_MEM（1MB）
+    // 或超出系统实际含有内存高端HIGH_MEMORY，则发出警告。LOW_MEM是主内存区可能
+    // 有的最小起始位置。当系统物理内存小于或等于6MB时，主内存区起始于LOW_MEM处。
+    // 再查看一下该page页面是否已经申请的页面，即判断其在内存页面映射字节图mem_map[]
+    // 中相应字节是否已经置位。若没有则需发出警告。
 	if (page < LOW_MEM || page >= HIGH_MEMORY)
 		printk("Trying to put page %p at %p\n", page, address);
 	if (mem_map[(page - LOW_MEM) >> 12] != 1)
 		printk("mem_map disagrees with %p at %p\n", page, address);
+	// 然后根据参数指定的线性地址address计算其在也目录表中对应的目录项指针，并
+    // 从中取得二级页表地址。如果该目录项有效(P=1),即指定的页表在内存中，则从中
+    // 取得指定页表地址放到page_table 变量中。否则就申请一空闲页面给页表使用，并
+    // 在对应目录项中置相应标志(7 - User、U/S、R/W).然后将该页表地址放到page_table
+    // 变量中。
 	page_table = (unsigned long *)((address >> 20) & 0xffc);
 	if ((*page_table) & 1)
 		page_table = (unsigned long *)(0xfffff000 & *page_table);
@@ -275,6 +320,9 @@ unsigned long put_page(unsigned long page, unsigned long address)
 		*page_table = tmp | 7;
 		page_table = (unsigned long *)tmp;
 	}
+	// 最后在找到的页表page_table中设置相关页表内容，即把物理页面page的地址填入
+    // 表项同时置位3个标志(U/S、W/R、P)。该页表项在页表中索引值等于线性地址位21
+    // -- 位12组成的10bit的值。每个页表共可有1024项(0 -- 0x3ff)。
 	page_table[(address >> 12) & 0x3ff] = page | 7;
 	/* no need for invalidate */
 	return page;
@@ -351,6 +399,20 @@ void get_empty_page(unsigned long address)
  * NOTE! This assumes we have checked that p != current, and that they
  * share the same executable.
  */
+//为了节约物理内存，不同进程可能会共享同样的物理页面，举个例子：
+//同时打开两个notepad，操作系统会同时生成两个进程，但由于运行的是同样的程序，
+//最起码代码段是可以共享的，所以这两个进程的代码段是可以设置成一样的！
+// linux设置共享物理页的方式如下：
+// 因为共享的肯定是物理页面，所以要先根据线性地址算出物理地址；
+// 修改目标进程的页表项，让某个页表项保存物理页起始地址（这种物理页的挂载思路在windows下叫shadow walker，可以用来过PG保护的）；
+
+//// 尝试对当前进程指定地址处的页面进行共享处理。
+// 当前进程与进程p是同一执行代码，也可以认为当前进程是由p进程执行fork操作产生的
+// 进程，因此它们的代码内容一样。如果未对数据段内容做过修改那么数据段内容也应一
+// 样。参数address是进程中的逻辑地址，即是当前进程欲与p进程共享页面的逻辑页面地
+// 址。进程P是将被共享页面的进程。如果P进程address处的页面存在并且没有被修改过的
+// 话，就让当前进程与p进程共享之。同时还需要验证指定地址处是否已经申请了页面，若
+// 是则出错，死机。返回：1 - 页面共享处理成功；0 - 失败。
 static int try_to_share(unsigned long address, struct task_struct *p)
 {
 	unsigned long from;
@@ -359,6 +421,12 @@ static int try_to_share(unsigned long address, struct task_struct *p)
 	unsigned long to_page;
 	unsigned long phys_addr;
 
+	// 首先分别求的指定进程p中和当前进程中逻辑地址address对应的页目录项。为了计
+	// 算方便先求出指定逻辑地址address出的'逻辑'页目录项号，即以进程空间(0 - 64 MB)
+	// 算出的页目录项号。该'逻辑'页目录项号加上进程p在CPU 4G线性空间中的实际页目
+	// 录项from_page。而'逻辑'页目录项号加上当前进程CPU 4G线性空间中起始地址对应
+	// 的页目录项，即可最后得到当前进程中地址address处页面所对应的4G线性空间中的
+	// 实际页目录项to_page。
 	from_page = to_page = ((address >> 20) & 0xffc);
 	from_page += ((p->start_code >> 20) & 0xffc);
 	to_page += ((current->start_code >> 20) & 0xffc);

@@ -8,11 +8,11 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This program built for i386-apple-darwin11.3.0
  
 
-# Make data base, printed on Tue Jul  5 19:22:25 2022
+# Make data base, printed on Wed Jul 13 16:55:38 2022
+ 
 
 # Variables
 
- 
 # automatic
 <D = $(patsubst %/,%,$(dir $<))
 # automatic
@@ -20,11 +20,13 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # makefile (from `Makefile', line 5)
 RAMDISK = 
 # environment
-VSCODE_LOG_NATIVE = false
+ELECTRON_NO_ATTACH_CONSOLE = 1
 # automatic
 ?D = $(patsubst %/,%,$(dir $?))
 # environment
 PLATFORMIO_IDE = 2.5.0
+# environment
+PLATFORMIO_CALLER = vscode
 # automatic
 @D = $(patsubst %/,%,$(dir $@))
 # automatic
@@ -34,25 +36,21 @@ CURDIR := /Users/bytedance/Downloads/linux_kernel_study-master/linux-0.11
 # makefile
 SHELL = /bin/sh
 # environment
-VSCODE_NLS_CONFIG = {"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"bbca1a7059cee8a1b93da8947fee1c4f.zh-cn","_translationsConfigFile":"/Users/bytedance/Library/Application Support/Code/clp/bbca1a7059cee8a1b93da8947fee1c4f.zh-cn/tcf.json","_cacheRoot":"/Users/bytedance/Library/Application Support/Code/clp/bbca1a7059cee8a1b93da8947fee1c4f.zh-cn","_resolvedLanguagePackCoreLocation":"/Users/bytedance/Library/Application Support/Code/clp/bbca1a7059cee8a1b93da8947fee1c4f.zh-cn/30d9c6cd9483b2cc586687151bcbcd635f373630","_corruptedFile":"/Users/bytedance/Library/Application Support/Code/clp/bbca1a7059cee8a1b93da8947fee1c4f.zh-cn/corrupted.info","_languagePackSupport":true}
+VSCODE_NLS_CONFIG = {"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"c9280508cf500dcd9c4c87fe2a1b08e9.zh-cn","_translationsConfigFile":"/Users/bytedance/Library/Application Support/Code/clp/c9280508cf500dcd9c4c87fe2a1b08e9.zh-cn/tcf.json","_cacheRoot":"/Users/bytedance/Library/Application Support/Code/clp/c9280508cf500dcd9c4c87fe2a1b08e9.zh-cn","_resolvedLanguagePackCoreLocation":"/Users/bytedance/Library/Application Support/Code/clp/c9280508cf500dcd9c4c87fe2a1b08e9.zh-cn/b06ae3b2d2dbfe28bca3134cc6be65935cdfea6a","_corruptedFile":"/Users/bytedance/Library/Application Support/Code/clp/c9280508cf500dcd9c4c87fe2a1b08e9.zh-cn/corrupted.info","_languagePackSupport":true}
 # environment
 _ = /usr/bin/make
 # makefile (from `Makefile', line 14)
 CFLAGS = -Wall -O -fstrength-reduce -fomit-frame-pointer -fcombine-regs -mstring-insns
 # makefile (from `Makefile', line 1)
 MAKEFILE_LIST :=  Makefile
-# environment
-VSCODE_VERBOSE_LOGGING = true
 # makefile (from `Makefile', line 13)
 CC = gcc $(RAMDISK)
 # environment
 __CFBundleIdentifier = com.microsoft.VSCode
-# environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/d3/cbc5yvqs11bcr1814z80sx2c0000gp/T/vscode-ipc-9b3d340e-bc6e-422c-a081-73feb873fad8.sock
 # makefile (from `Makefile', line 16)
 CPP = cpp -nostdinc -Iinclude
 # environment
-VSCODE_CWD = /
+VSCODE_CWD = /Users/bytedance
 # makefile (from `Makefile', line 27)
 MATH = kernel/math/math.a
 # makefile (from `Makefile', line 23)
@@ -64,19 +62,15 @@ LD = gld
 # environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
-VSCODE_LOG_STACK = false
-# environment
 ELECTRON_RUN_AS_NODE = 1
 # makefile (from `Makefile', line 12)
 LDFLAGS = -s -x -M
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.bL7jEiQ90u/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.B4aQIfe5uH/Listeners
 # automatic
 %F = $(notdir $%)
-# environment
-VSCODE_PIPE_LOGGING = true
 # environment
 PWD = /Users/bytedance/Downloads/linux_kernel_study-master/linux-0.11
 # environment
@@ -88,7 +82,9 @@ HOME = /Users/bytedance
 # default
 MAKEFILEPATH := /Applications/Xcode.app/Contents/Developer/Makefiles
 # environment
-VSCODE_CODE_CACHE_PATH = /Users/bytedance/Library/Application Support/Code/CachedData/30d9c6cd9483b2cc586687151bcbcd635f373630
+VSCODE_CLI = 1
+# environment
+VSCODE_CODE_CACHE_PATH = /Users/bytedance/Library/Application Support/Code/CachedData/b06ae3b2d2dbfe28bca3134cc6be65935cdfea6a
 # environment
 LOGNAME = bytedance
 # environment
@@ -104,15 +100,17 @@ VSCODE_HANDLES_UNCAUGHT_ERRORS = true
 # automatic
 ^D = $(patsubst %/,%,$(dir $^))
 # environment
-PLATFORMIO_PATH = /Users/bytedance/.platformio/python3/bin:/usr/local/opt/openssl/bin:/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/puppetlabs/bin:/usr/local/munki:.:/Users/bytedance/Library/Android/sdk/tools:/Users/bytedance/Library/Android/sdk/platform-tools
+PLATFORMIO_PATH = /Users/bytedance/.platformio/penv/bin:/Users/bytedance/.platformio/penv:/Users/bytedance/.platformio/python3/bin:/usr/local/opt/openssl/bin:/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/puppetlabs/bin:/usr/local/munki:.:/Users/bytedance/Library/Android/sdk/tools:/Users/bytedance/Library/Android/sdk/platform-tools
+# environment
+COLORTERM = truecolor
 # default
 MAKE = $(MAKE_COMMAND)
-# default
-MAKECMDGOALS := all
+# environment
+LC_TERMINAL = iTerm2
 # environment
 PATH = /usr/local/opt/openssl/bin:/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/puppetlabs/bin:/usr/local/munki:.:/Users/bytedance/Library/Android/sdk/tools:/Users/bytedance/Library/Android/sdk/platform-tools
 # environment
-SHLVL = 1
+SHLVL = 3
 # environment
 XPC_FLAGS = 0x0
 # makefile (from `Makefile', line 10)
@@ -125,6 +123,11 @@ MAKE_VERSION := 3.81
 USER = bytedance
 # makefile
 .DEFAULT_GOAL := all
+ 
+# default
+MAKECMDGOALS := all
+# environment
+TERM_SESSION_ID = w0t0p0:290D760D-D771-4F24-B1D5-9ECE674EF228
 # environment
 CLASSPATH = /lib/tools.jar:/lib/dt.jar:.
 # environment
@@ -133,6 +136,8 @@ LESS = -R
 %D = $(patsubst %/,%,$(dir $%))
 # default
 MAKE_COMMAND := /Applications/Xcode.app/Contents/Developer/usr/bin/make
+# environment
+TERM_PROGRAM = iTerm.app
 # default
 .VARIABLES := 
 # environment
@@ -140,7 +145,9 @@ TMPDIR = /var/folders/d3/cbc5yvqs11bcr1814z80sx2c0000gp/T/
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /Users/bytedance/Library/Application Support/Code/1.68.1-main.sock
+VSCODE_IPC_HOOK = /Users/bytedance/Library/Application Support/Code/1.69.1-main.sock
+# environment
+MallocNanoZone = 0
 # makefile
 MAKEFLAGS = Rrqp
 # environment
@@ -148,13 +155,21 @@ MFLAGS = -Rrqp
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.27449451.27449457
+TERM_PROGRAM_VERSION = 3.4.16
+# environment
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.29973426.29973432.0AC81E3B-612C-4698-B79E-83F5649F0E09
+# environment
+LC_TERMINAL_VERSION = 3.4.16
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # makefile (from `Makefile', line 8)
 LD86 = ld86 -0
 # automatic
 +F = $(notdir $+)
+# environment
+ITERM_SESSION_ID = w0t0p0:290D760D-D771-4F24-B1D5-9ECE674EF228
+# environment
+COLORFGBG = 7;0
 # environment
 __CF_USER_TEXT_ENCODING = 0x1F6:0x19:0x34
 # environment
@@ -166,7 +181,7 @@ AS86 = as86 -0 -a
 # automatic
 <F = $(notdir $<)
 # environment
-PLATFORMIO_CALLER = vscode
+ITERM_PROFILE = Default
 # environment
 PAGER = less
 # environment
@@ -184,9 +199,11 @@ MAKELEVEL := 0
 # environment
 LANG = C
 # environment
-VSCODE_PID = 65419
+TERM = xterm-256color
+# environment
+VSCODE_PID = 1889
 # variable set hash-table stats:
-# Load=86/1024=8%, Rehash=0, Collisions=4/118=3%
+# Load=94/1024=9%, Rehash=0, Collisions=8/126=6%
 
 # Pattern-specific Variable Values
 
@@ -194,11 +211,10 @@ VSCODE_PID = 65419
 
 # Directories
 
-# . (device 16777220, inode 25504165): 12 files, no impossibilities.
+# . (device 16777220, inode 25504165): 14 files, no impossibilities.
 
-# 12 files, no impossibilities in 1 directories.
+# 14 files, no impossibilities in 1 directories.
 
- 
 # Implicit Rules
 
 # No implicit rules.
@@ -379,6 +395,7 @@ include/utime.h:
 #  File has not been updated.
 
 # Not a target:
+ 
 include/sys/stat.h:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
@@ -429,7 +446,6 @@ include/stdarg.h:
 boot/bootsect: boot/bootsect.s
 #  Implicit rule search has not been done.
 #  Implicit/static pattern stem: `'
- 
 #  File does not exist.
 #  File has been updated.
 #  Needs to be updated (-q is set).
@@ -536,6 +552,7 @@ kernel/math/math.a:
 	
 
 .c.s:
+ 
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -613,6 +630,6 @@ include/signal.h:
 # strcache size: total = 4096 / max = 4096 / min = 4096 / avg = 4096
 # strcache free: total = 4087 / max = 4087 / min = 4087 / avg = 4087
 
-# Finished Make data base on Tue Jul  5 19:22:25 2022
+# Finished Make data base on Wed Jul 13 16:55:38 2022
 
  

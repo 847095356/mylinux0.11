@@ -2,15 +2,18 @@ make --dry-run --always-make --keep-going --print-directory
 make: Entering directory `/Users/bytedance/Downloads/linux_kernel_study-master/linux-0.11'
 as86 -0 -a -o boot/bootsect.o boot/bootsect.s
 ld86 -0 -s -o boot/bootsect boot/bootsect.o
+ 
 as86 -0 -a -o boot/setup.o boot/setup.s
 ld86 -0 -s -o boot/setup boot/setup.o
 gas -c -o boot/head.o boot/head.s
  
 gcc  -Wall -O -fstrength-reduce -fomit-frame-pointer -fcombine-regs -mstring-insns \
 	-nostdinc -Iinclude -c -o init/main.o init/main.c
+ 
 (cd kernel; make)
 (cd mm; make)
 (cd fs; make)
+ 
 (cd kernel/blk_drv; make)
 (cd kernel/chr_drv; make)
 (cd kernel/math; make)

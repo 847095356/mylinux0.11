@@ -91,7 +91,7 @@ struct task_struct
 	long blocked;					//阻塞状态	/* bitmap of masked signals */
 									/* various fields */
 	int exit_code;					//退出码
-	unsigned long start_code, end_code, end_data, brk, start_stack;
+	unsigned long start_code /*代码段起始地址*/, end_code /*代码段长度*/, end_data, brk, start_stack;
 	long pid, father, pgrp, session, leader;
 	unsigned short uid, euid, suid;				   //用户id
 	unsigned short gid, egid, sgid;				   //组id
@@ -102,13 +102,13 @@ struct task_struct
 	/* file system info */
 	int tty; //是否打开了控制台	/* -1 if no tty, so it must be signed */
 	unsigned short umask;
-	struct m_inode *pwd;	//路径
-	struct m_inode *root;	//根    进程指定的根路径可以不是文件系统的根路径
-	struct m_inode *executable;
+	struct m_inode *pwd;		//路径
+	struct m_inode *root;		//根    进程指定的根路径可以不是文件系统的根路径
+	struct m_inode *executable; //可执行程序源文件
 	unsigned long close_on_exec;
 	struct file *filp[NR_OPEN]; //打开了多少个文件
 	/* ldt for this task 0 - zero 1 - cs 2 - ds&ss 本任务的ldt表，0-空，1-代码段，2-数据和堆栈段 */
-	struct desc_struct ldt[3];	// ldt包括两个东西，一个是数据段（全局变量静态变量等），另一个是代码段，不过这里面存的都是指针
+	struct desc_struct ldt[3]; // ldt包括两个东西，一个是数据段（全局变量静态变量等），另一个是代码段，不过这里面存的都是指针
 	/* tss for this task */
 	struct tss_struct tss; //进程运行过程中CPU需要知道的进程状态标志（段属性、位属性等）
 };
